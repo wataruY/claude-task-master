@@ -2,8 +2,12 @@ import { createOpenAI, openai } from "@ai-sdk/openai"; // Using openai provider 
 import { generateObject, generateText, streamText } from "ai"; // Import necessary functions from 'ai'
 import { log } from "../../scripts/modules/utils.js";
 import { env } from "node:process";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 const baseURL = env.OPENAI_BASE_URL || undefined;
+function getProvider() {
+  return createOpenAICompatible({ name: "xxx", baseURL });
+}
 
 /**
  * Generates text using OpenAI models via Vercel AI SDK.
@@ -31,7 +35,7 @@ export async function generateOpenAIText(params) {
   try {
     const result = await openaiClient.chat(messages, {
       // Updated: Use openaiClient.chat directly
-      model: modelId,
+      model: !baseURL ? openaiClient(modelId) : getProvider("xxx"),
       max_tokens: maxTokens,
       temperature,
     });
@@ -94,7 +98,7 @@ export async function streamOpenAIText(params) {
     // Use the streamText function from Vercel AI SDK core
     const stream = await openaiClient.chat.stream(messages, {
       // Updated: Use openaiClient.chat.stream
-      model: modelId,
+      model: !baseURL ? openaiClient(modelId) : getProvider("xxx"),
       max_tokens: maxTokens,
       temperature,
     });
@@ -156,7 +160,7 @@ export async function generateOpenAIObject(params) {
   try {
     // Use the imported generateObject function from 'ai' package
     const result = await generateObject({
-      model: openaiClient(modelId),
+      model: !baseURL ? openaiClient(modelId) : getProvider("xxx"),
       schema: schema,
       messages: messages,
       mode: "tool",
