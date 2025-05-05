@@ -1,7 +1,9 @@
-import { createOpenAI, openai } from '@ai-sdk/openai'; // Using openai provider from Vercel AI SDK
-import { generateText, streamText, generateObject } from 'ai'; // Import necessary functions from 'ai'
-import { log } from '../../scripts/modules/utils.js';
-import { env } from 'node:process';
+import { createOpenAI, openai } from "@ai-sdk/openai"; // Using openai provider from Vercel AI SDK
+import { generateObject, generateText, streamText } from "ai"; // Import necessary functions from 'ai'
+import { log } from "../../scripts/modules/utils.js";
+import { env } from "node:process";
+
+const baseURL = env.OPENAI_BASE_URL || undefined;
 
 /**
  * Generates text using OpenAI models via Vercel AI SDK.
@@ -11,58 +13,56 @@ import { env } from 'node:process';
  * @throws {Error} If API call fails.
  */
 export async function generateOpenAIText(params) {
-	const { apiKey, modelId, messages, maxTokens, temperature } = params;
-	log('debug', `generateOpenAIText called with model: ${modelId}`);
+  const { apiKey, modelId, messages, maxTokens, temperature } = params;
+  log("debug", `generateOpenAIText called with model: ${modelId}`);
 
-	if (!apiKey) {
-		throw new Error('OpenAI API key is required.');
-	}
-	if (!modelId) {
-		throw new Error('OpenAI Model ID is required.');
-	}
-	if (!messages || !Array.isArray(messages) || messages.length === 0) {
-		throw new Error('Invalid or empty messages array provided for OpenAI.');
-	}
-  
-  const baseURL = env.OPENAI_BASE_URL || undefined;
+  if (!apiKey) {
+    throw new Error("OpenAI API key is required.");
+  }
+  if (!modelId) {
+    throw new Error("OpenAI Model ID is required.");
+  }
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    throw new Error("Invalid or empty messages array provided for OpenAI.");
+  }
 
-	const openaiClient = createOpenAI({ apiKey, baseURL });
+  const openaiClient = createOpenAI({ apiKey, baseURL });
 
-	try {
-		const result = await openaiClient.chat(messages, {
-			// Updated: Use openaiClient.chat directly
-			model: modelId,
-			max_tokens: maxTokens,
-			temperature
-		});
+  try {
+    const result = await openaiClient.chat(messages, {
+      // Updated: Use openaiClient.chat directly
+      model: modelId,
+      max_tokens: maxTokens,
+      temperature,
+    });
 
-		// Adjust based on actual Vercel SDK response structure for openaiClient.chat
-		// This might need refinement based on testing the SDK's output.
-		const textContent = result?.choices?.[0]?.message?.content?.trim();
+    // Adjust based on actual Vercel SDK response structure for openaiClient.chat
+    // This might need refinement based on testing the SDK's output.
+    const textContent = result?.choices?.[0]?.message?.content?.trim();
 
-		if (!textContent) {
-			log(
-				'warn',
-				'OpenAI generateText response did not contain expected content.',
-				{ result }
-			);
-			throw new Error('Failed to extract content from OpenAI response.');
-		}
-		log(
-			'debug',
-			`OpenAI generateText completed successfully for model: ${modelId}`
-		);
-		return textContent;
-	} catch (error) {
-		log(
-			'error',
-			`Error in generateOpenAIText (Model: ${modelId}): ${error.message}`,
-			{ error }
-		);
-		throw new Error(
-			`OpenAI API error during text generation: ${error.message}`
-		);
-	}
+    if (!textContent) {
+      log(
+        "warn",
+        "OpenAI generateText response did not contain expected content.",
+        { result },
+      );
+      throw new Error("Failed to extract content from OpenAI response.");
+    }
+    log(
+      "debug",
+      `OpenAI generateText completed successfully for model: ${modelId}`,
+    );
+    return textContent;
+  } catch (error) {
+    log(
+      "error",
+      `Error in generateOpenAIText (Model: ${modelId}): ${error.message}`,
+      { error },
+    );
+    throw new Error(
+      `OpenAI API error during text generation: ${error.message}`,
+    );
+  }
 }
 
 /**
@@ -73,48 +73,48 @@ export async function generateOpenAIText(params) {
  * @throws {Error} If API call fails.
  */
 export async function streamOpenAIText(params) {
-	const { apiKey, modelId, messages, maxTokens, temperature } = params;
-	log('debug', `streamOpenAIText called with model: ${modelId}`);
+  const { apiKey, modelId, messages, maxTokens, temperature } = params;
+  log("debug", `streamOpenAIText called with model: ${modelId}`);
 
-	if (!apiKey) {
-		throw new Error('OpenAI API key is required.');
-	}
-	if (!modelId) {
-		throw new Error('OpenAI Model ID is required.');
-	}
-	if (!messages || !Array.isArray(messages) || messages.length === 0) {
-		throw new Error(
-			'Invalid or empty messages array provided for OpenAI streaming.'
-		);
-	}
+  if (!apiKey) {
+    throw new Error("OpenAI API key is required.");
+  }
+  if (!modelId) {
+    throw new Error("OpenAI Model ID is required.");
+  }
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    throw new Error(
+      "Invalid or empty messages array provided for OpenAI streaming.",
+    );
+  }
 
-	const openaiClient = createOpenAI({ apiKey });
+  const openaiClient = createOpenAI({ apiKey, baseURL });
 
-	try {
-		// Use the streamText function from Vercel AI SDK core
-		const stream = await openaiClient.chat.stream(messages, {
-			// Updated: Use openaiClient.chat.stream
-			model: modelId,
-			max_tokens: maxTokens,
-			temperature
-		});
+  try {
+    // Use the streamText function from Vercel AI SDK core
+    const stream = await openaiClient.chat.stream(messages, {
+      // Updated: Use openaiClient.chat.stream
+      model: modelId,
+      max_tokens: maxTokens,
+      temperature,
+    });
 
-		log(
-			'debug',
-			`OpenAI streamText initiated successfully for model: ${modelId}`
-		);
-		// The Vercel SDK's streamText should directly return the stream object
-		return stream;
-	} catch (error) {
-		log(
-			'error',
-			`Error initiating OpenAI stream (Model: ${modelId}): ${error.message}`,
-			{ error }
-		);
-		throw new Error(
-			`OpenAI API error during streaming initiation: ${error.message}`
-		);
-	}
+    log(
+      "debug",
+      `OpenAI streamText initiated successfully for model: ${modelId}`,
+    );
+    // The Vercel SDK's streamText should directly return the stream object
+    return stream;
+  } catch (error) {
+    log(
+      "error",
+      `Error initiating OpenAI stream (Model: ${modelId}): ${error.message}`,
+      { error },
+    );
+    throw new Error(
+      `OpenAI API error during streaming initiation: ${error.message}`,
+    );
+  }
 }
 
 /**
@@ -125,55 +125,58 @@ export async function streamOpenAIText(params) {
  * @throws {Error} If API call fails or object generation fails.
  */
 export async function generateOpenAIObject(params) {
-	const {
-		apiKey,
-		modelId,
-		messages,
-		schema,
-		objectName,
-		maxTokens,
-		temperature
-	} = params;
-	log(
-		'debug',
-		`generateOpenAIObject called with model: ${modelId}, object: ${objectName}`
-	);
+  const {
+    apiKey,
+    modelId,
+    messages,
+    schema,
+    objectName,
+    maxTokens,
+    temperature,
+  } = params;
+  log(
+    "debug",
+    `generateOpenAIObject called with model: ${modelId}, object: ${objectName}`,
+  );
 
-	if (!apiKey) throw new Error('OpenAI API key is required.');
-	if (!modelId) throw new Error('OpenAI Model ID is required.');
-	if (!messages || !Array.isArray(messages) || messages.length === 0)
-		throw new Error('Invalid messages array for OpenAI object generation.');
-	if (!schema)
-		throw new Error('Schema is required for OpenAI object generation.');
-	if (!objectName)
-		throw new Error('Object name is required for OpenAI object generation.');
+  if (!apiKey) throw new Error("OpenAI API key is required.");
+  if (!modelId) throw new Error("OpenAI Model ID is required.");
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    throw new Error("Invalid messages array for OpenAI object generation.");
+  }
+  if (!schema) {
+    throw new Error("Schema is required for OpenAI object generation.");
+  }
+  if (!objectName) {
+    throw new Error("Object name is required for OpenAI object generation.");
+  }
 
-	const openaiClient = createOpenAI({ apiKey });
+  const openaiClient = createOpenAI({ apiKey, baseURL });
 
-	try {
-		// Use the imported generateObject function from 'ai' package
-		const result = await generateObject({
-			model: openaiClient(modelId),
-			schema: schema,
-			messages: messages,
-			mode: 'tool',
-			maxTokens: maxTokens,
-			temperature: temperature
-		});
+  try {
+    // Use the imported generateObject function from 'ai' package
+    const result = await generateObject({
+      model: openaiClient(modelId),
+      schema: schema,
+      messages: messages,
+      mode: "tool",
+      maxTokens: maxTokens,
+      temperature: temperature,
+    });
 
-		log(
-			'debug',
-			`OpenAI generateObject completed successfully for model: ${modelId}`
-		);
-		return result.object;
-	} catch (error) {
-		log(
-			'error',
-			`Error in generateOpenAIObject (Model: ${modelId}, Object: ${objectName}): ${error.message}`,
-			{ error }
-		);
-		throw new Error(
-			`OpenAI API error during object generation: ${error.message}`
-		);
-	}
+    log(
+      "debug",
+      `OpenAI generateObject completed successfully for model: ${modelId}`,
+    );
+    return result.object;
+  } catch (error) {
+    log(
+      "error",
+      `Error in generateOpenAIObject (Model: ${modelId}, Object: ${objectName}): ${error.message}`,
+      { error },
+    );
+    throw new Error(
+      `OpenAI API error during object generation: ${error.message}`,
+    );
+  }
 }
