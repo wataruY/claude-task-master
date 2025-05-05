@@ -1,6 +1,7 @@
 import { createOpenAI, openai } from '@ai-sdk/openai'; // Using openai provider from Vercel AI SDK
 import { generateText, streamText, generateObject } from 'ai'; // Import necessary functions from 'ai'
 import { log } from '../../scripts/modules/utils.js';
+import { env } from 'node:process';
 
 /**
  * Generates text using OpenAI models via Vercel AI SDK.
@@ -22,8 +23,10 @@ export async function generateOpenAIText(params) {
 	if (!messages || !Array.isArray(messages) || messages.length === 0) {
 		throw new Error('Invalid or empty messages array provided for OpenAI.');
 	}
+  
+  const baseURL = env.OPENAI_BASE_URL || undefined;
 
-	const openaiClient = createOpenAI({ apiKey });
+	const openaiClient = createOpenAI({ apiKey, baseURL });
 
 	try {
 		const result = await openaiClient.chat(messages, {
